@@ -3,7 +3,7 @@ from voxelization import voxelize_surface, solid_fill, remove_inner_voxels
 from export_voxel_obj import export_voxel_obj
 from voxel_texture import sample_voxel_colors
 
-input_path = r"C:\Users\roman\Downloads\Monkey.obj"
+input_path = r"C:\Users\user\Downloads\Test\blade.obj"
 
 mesh = load_and_prepare_mesh(input_path)
 
