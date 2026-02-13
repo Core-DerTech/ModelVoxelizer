@@ -4,39 +4,26 @@ import numpy as np
 
 def load_and_prepare_mesh(path: str) -> trimesh.Trimesh:
     """
-    Завантажує OBJ-модель, очищає та нормалізує її для вокселізації.
-    Підтримує сучасний trimesh 4.x (без remove_degenerate_faces)
+    Load an OBJ mesh, clean it, center it, and normalize scale.
     """
-    # 1️⃣ Завантажуємо mesh
     mesh = trimesh.load(path, force='mesh', skip_materials=False)
 
     if mesh.is_empty:
         raise ValueError("Loaded mesh is empty")
 
-    # 2️⃣ Очистка: видаляємо нульові грані
-    face_areas = mesh.area_faces
-    valid_faces = face_areas > 1e-12  # поріг для нульових граней
-    mesh.update_faces(valid_faces)
+    # Remove degenerate faces (faces with zero area)
+    mesh.update_faces(mesh.faces[mesh.area_faces > 1e-12])
 
-    # 3️⃣ Видаляємо непотрібні вершини
+    # Remove vertices not used by any faces
     mesh.remove_unreferenced_vertices()
 
-    # 4️⃣ Merge вершин без помилок
-    try:
-        mesh.merge_vertices()
-    except Exception as e:
-        print(f"[Warning] merge_vertices failed: {e}")
+    # Merge duplicate vertices
+    mesh.merge_vertices()
 
-    # 5️⃣ Виправлення орієнтації та manifold
-    try:
-        trimesh.repair.fix_inversion(mesh)
-        trimesh.repair.fix_winding(mesh)
-        trimesh.repair.fill_holes(mesh)
-    except Exception:
-        pass
-
-    # 6️⃣ Центрування та нормалізація
+    # Center mesh at origin
     mesh.apply_translation(-mesh.centroid)
+
+    # Normalize scale so largest dimension = 1
     scale = 1.0 / max(mesh.extents)
     mesh.apply_scale(scale)
 
